@@ -1,2 +1,2 @@
 # Summarizer
-![Text summarizer Logo](images/Text Summarizer.png)
+![Text summarizer Logo](summarization.jpeg)
