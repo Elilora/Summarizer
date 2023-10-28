@@ -1,6 +1,5 @@
 # Summarizer
 ![Text summarizer Logo](Text_summarization.jpeg)
-Certainly, here's a template for a README for your text summarization repository:
 
 ```markdown
 # Text Summarization
