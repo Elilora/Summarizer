@@ -2,10 +2,6 @@
 ![Text summarizer Logo](Text_summarization.jpeg)
 
 ```markdown
-# Text Summarization
-
-![Text Summarization](images/summarization.jpg)
-
 Text Summarization is a Python application for simplifying lengthy documents and extracting key information using advanced Natural Language Processing techniques. With this tool, you can efficiently generate concise summaries for various types of text, from articles and research papers to business reports and more.
 
 
