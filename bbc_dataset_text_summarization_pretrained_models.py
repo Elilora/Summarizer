@@ -342,28 +342,7 @@ def tokenize_function(examples, tokenizer):
     model_inputs["labels"] = labels["input_ids"]
     return model_inputs
 
-"""# Old"""
-
-# Access the "Summaries" column from train_df and test_df
-train_summaries = train_df["Summaries"]
-test_summaries = test_df["Summaries"]
-
-# Define your ROUGE metric
-rouge_score = load_metric("rouge")
-
-def base_summary(text):
-    return "\n".join(sent_tokenize(text)[:3])
-
-def evaluate_baseline(data, metric):
-    summaries = [base_summary(text) for text in data]
-    return metric.compute(predictions=summaries, references=data)
-
-# Compute ROUGE scores for the test dataset
-base_score = evaluate_baseline(test_summaries, rouge_score)
-
-rouge_names = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
-rouge_dict = {name: round(base_score[name].mid.fmeasure * 100, 2) for name in rouge_names}
-rouge_dict
+"""# Summarization Functions"""
 
 def prepare_summarization_model(model_name, dataset):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -376,11 +355,10 @@ def prepare_summarization_model(model_name, dataset):
        summarizer = TransformerSummarizer(transformer_type="GPT2", transformer_model_key="gpt2-medium")
     elif model_name == "EleutherAI/gpt-neo-1.3B":
         model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B").to(device)
-        summarizer = TransformerSummarizer(transformer_type="Gpt-neo", transformer_model_key="Gpt-neo")
+        summarizer = pipeline(task="text-generation", transformer_model_key="Gpt-neo")
     else:
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
         summarizer = pipeline(task ="summarization", model=model, tokenizer=tokenizer)
-
 
     return summarizer, dataset,model
 
@@ -434,98 +412,3 @@ print_summary (gpt2_dataset, 1, "gpt2_medium_summarizer", gpt2_summarizer)
 
 gpt3_summarizer, gpt3_dataset, gpt3_model = prepare_summarization_model("EleutherAI/gpt-neo-1.3B", dataset)
 print_summary(gpt3_dataset, 1, 'gpt3_summarizer',gpt3_summarizer)
-
-"""# ****Fine Tuning****"""
-
-def evaluate_summarization(eval_pred ):
-    predictions, labels = eval_pred
-
-    model_name = "EleutherAI/gpt-neo-1.3B"
-    # Initialize tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    # Decode generated summaries into text
-    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-
-    # Replace -100 in the labels as they cannot be decoded
-    labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-
-    # Decode reference summaries into text
-    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-    # Tokenize the decoded summaries into sentences
-    decoded_preds = ["\n".join(sent_tokenize(pred.strip())) for pred in decoded_preds]
-    decoded_labels = ["\n".join(sent_tokenize(label.strip())) for label in decoded_labels]
-
-    # Compute ROUGE scores
-    rouge = Rouge()
-    result = rouge.get_scores(decoded_preds, decoded_labels, avg=True)
-    #result = rouge_score.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-
-
-    # Round the ROUGE scores to four decimal places
-    result = {k: round(v, 4) for k, v in result}
-
-    return result
-
-# List of models to fine-tune
-models_to_fine_tune = [
-    #{"model_name": "google/pegasus-xsum", "model_id": "pegasus"},
-    #{"model_name": "microsoft/prophetnet-large-uncased", "model_id": "prophetnet"},
-    {"model_name": "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization", "model_id": "bert"}]
-    #{"model_name": "gpt2-medium", "model_id": "gpt2_medium"}]
-
-# Define training arguments and other settings
-batch_size = 2
-num_train_epochs = 2
-
-for model_info in models_to_fine_tune:
-    model_name = model_info["model_name"]
-    model_id = model_info["model_id"]
-
-    # Initialize the tokenizer and model using the prepare_summarization_model function
-    summarizer, dataset, model_tokenized = prepare_summarization_model(model_name)
-    tokenizer = summarizer.tokenizer
-    tokenizer.pad_token = tokenizer.eos_token
-    model = summarizer.model
-
-    tokenized_datsets= tokenized_datasets.remove_columns(dataset["train"].column_names)
-
-    # Define data collator
-    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
-
-    # Define training arguments
-    logging_steps = len(dataset["train"]) // batch_size
-
-    training_args = Seq2SeqTrainingArguments(output_dir=f"./model_finetuned_{model_id}",evaluation_strategy="epoch",learning_rate=5.6e-5,per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=batch_size,weight_decay=0.01,save_total_limit=3,num_train_epochs=num_train_epochs,predict_with_generate=True,logging_steps=logging_steps,)
-
-    # Initialize Trainer
-    trainer = Seq2SeqTrainer(model=model,args=training_args,train_dataset=dataset["train"],eval_dataset=dataset["test"],data_collator=data_collator,
-                             tokenizer=tokenizer,compute_metrics=evaluate_summarization,)
-
-
-num_samples_train = len(dataset["train"])
-num_samples_eval = len(dataset["test"])
-
-print(f"Number of samples in training dataset: {num_samples_train}")
-print(f"Number of samples in evaluation dataset: {num_samples_eval}")
-
-for model_info in models_to_fine_tune:
-    model_name = model_info["model_name"]
-    model_id = model_info["model_id"] # Fine-tune the model
-    trainer.train()
-# Evaluate the model
-    results = trainer.evaluate()
-
-    print(f"Evaluation results for {model_id} model:")
-    print(results)
-
-# Save the fine-tuned model and tokenizer
-model.save_pretrained("./model_finetuned")
-tokenizer.save_pretrained("./model_finetuned"")
-# Save the fine-tuned model
-trainer.save_model("./model_finetuned")
-
-# Use the fine-tuned model for summarization
-fine_tuned_summarizer = pipeline("summarization", model="./model_finetuned", tokenizer=pegasus_tokenizer)
