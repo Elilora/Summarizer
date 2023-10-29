@@ -22,7 +22,7 @@ def generate_summary(text):
 st.write("\nWelcome to YouSum, create a summary with an AI-Powered Solution")
 
 # Input text area
-input_option = st.selectbox("Select input source:", ("Paste Text", "Upload File", "Enter URL"))
+input_option = st.selectbox("Select input source:", ("Paste Text", "Upload File"))
 
 if input_option == "Paste Text":
     input_text = st.text_area("Enter your text to summarize:", height=200)
