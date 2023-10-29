@@ -18,7 +18,7 @@ Text Summarization is a Python application for simplifying lengthy documents and
 
 3. Run the application:
    ```bash
-   python summarizer.py
+   streamlit run streamlit_app.py
    ```
 
 4. Input your text and get a summarized version in seconds!
@@ -26,7 +26,7 @@ Text Summarization is a Python application for simplifying lengthy documents and
 
 ## Contributing
 
-We welcome contributions from the open-source community. If you'd like to enhance this text summarization tool or fix any issues, please see our [Contribution Guidelines](CONTRIBUTING.md).
+We welcome contributions from the open-source community. If you'd like to enhance this text summarization tool or fix any issues, please see our reach out.
 
 
 ## Contact
