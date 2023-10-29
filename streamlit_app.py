@@ -58,20 +58,6 @@ elif input_option == "Upload File":
                 st.subheader("Summary:")
                 st.write(summary)
         except Exception as e:
-            st.error(f"Error processing the uploaded file: {str(e)}")
-
-elif input_option == "Enter URL":
-    url = st.text_input("Enter a URL to summarize:")
-    if st.button("Generate Summary"):
-        if url:
-            try:
-                response = requests.get(url)
-                response.raise_for_status()
-                webpage_text = response.text
-                summary = generate_summary(webpage_text)
-                st.subheader("Summary:")
-                st.write(summary)
-            except requests.exceptions.RequestException as e:
-                st.error(f"Error fetching content from the provided URL: {str(e)}")
-        else:
-            st.warning("Please enter a valid URL.")
+            st.error(f"Error processing the uploaded file: {str(e)}"
+else:
+            st.warning("Please enter a valid option.")
