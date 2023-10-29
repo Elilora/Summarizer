@@ -58,4 +58,4 @@ elif input_option == "Upload File":
                 st.subheader("Summary:")
                 st.write(summary)
         except Exception as e:
-            st.error(f"Error processing the uploaded file: {str(e)}"
+            st.error(f"Error processing the uploaded file: {str(e)}")
