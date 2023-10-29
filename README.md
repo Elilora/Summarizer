@@ -26,7 +26,7 @@ Text Summarization is a Python application for simplifying lengthy documents and
 
 ## Contributing
 
-We welcome contributions from the open-source community. If you'd like to enhance this text summarization tool or fix any issues, please see our reach out.
+We welcome contributions from the open-source community. If you'd like to enhance this text summarization tool or fix any issues, please reach out.
 
 
 ## Contact
