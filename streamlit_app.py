@@ -59,5 +59,3 @@ elif input_option == "Upload File":
                 st.write(summary)
         except Exception as e:
             st.error(f"Error processing the uploaded file: {str(e)}"
-else:
-            st.warning("Please enter a valid option.")
